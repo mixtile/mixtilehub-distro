@@ -1,0 +1,37 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+
+BUILD_DIR="$DIR/build"
+
+# Init build environment
+. "$DIR/poky/oe-init-build-env" "$BUILD_DIR" > /dev/null
+
+if [ "$?" -eq 0 ]; then
+
+	# Add machine and distro
+	echo '' >> "$BUILD_DIR/conf/local.conf"
+	sed -i '/# MixtileHub/,$d' "$BUILD_DIR/conf/local.conf"
+	echo '# MixtileHub
+MACHINE = "mixtilehub"
+DISTRO = "mixtilehub"' >> "$BUILD_DIR/conf/local.conf"
+
+	# Add layers
+	echo '' >> "$BUILD_DIR/conf/bblayers.conf"
+	sed -i '/# MixtileHub/,$d' "$BUILD_DIR/conf/bblayers.conf"
+	echo "# MixtileHub
+BBLAYERS += \" \\
+  $DIR/meta-openembedded/meta-oe \\
+  $DIR/meta-openembedded/meta-python \\
+  $DIR/meta-mixtilehub \\
+  \"" >> "$BUILD_DIR/conf/bblayers.conf"
+
+	echo "Run 'bitbake <target>'"
+	echo "Images:"
+	echo "$(find $DIR/meta-mixtilehub/recipes-core/images/ -name *.bb  -type f -printf "%f\n" | cut -f 1 -d '.')"
+
+fi
+
+unset BUILD_DIR
+unset DIR
